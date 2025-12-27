@@ -189,31 +189,8 @@
             <!-- User Performance -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Your Performance</h3>
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                        <span class="text-sm font-medium text-gray-700">Tasks Assigned</span>
-                        <span class="text-lg font-bold text-blue-600">{{ $userTaskStats['assigned'] }}</span>
-                    </div>
-                    <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                        <span class="text-sm font-medium text-gray-700">Tasks Completed</span>
-                        <span class="text-lg font-bold text-green-600">{{ $userTaskStats['completed'] }}</span>
-                    </div>
-                    <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
-                        <span class="text-sm font-medium text-gray-700">Tasks Pending</span>
-                        <span class="text-lg font-bold text-yellow-600">{{ $userTaskStats['pending'] }}</span>
-                    </div>
-                    <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-                        <span class="text-sm font-medium text-gray-700">Tasks Overdue</span>
-                        <span class="text-lg font-bold text-red-600">{{ $userTaskStats['overdue'] }}</span>
-                    </div>
-                </div>
-                <div class="mt-4 pt-4 border-t border-gray-200">
-                    <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-600">Completion Rate</span>
-                        <span class="font-medium text-gray-900">
-                            {{ $userTaskStats['assigned'] > 0 ? round(($userTaskStats['completed'] / $userTaskStats['assigned']) * 100) : 0 }}%
-                        </span>
-                    </div>
+                <div class="h-64">
+                    <canvas id="performanceChart"></canvas>
                 </div>
             </div>
         </div>
@@ -348,3 +325,35 @@
         </div>
     </main>
 @endsection
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const performanceData = @json($performanceData);
+        const labels = Object.keys(performanceData);
+        const data = Object.values(performanceData);
+
+        const ctx = document.getElementById('performanceChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Tasks Completed',
+                    data: data,
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    });
+</script>

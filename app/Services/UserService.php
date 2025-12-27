@@ -2,9 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\User;
-use App\Repositories\Contracts\UserRepositoryInterface;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class UserService
 {
@@ -27,7 +25,9 @@ class UserService
      */
     public function getAllUsers(): Collection
     {
-        return $this->userRepository->all();
+        return Cache::remember('users', 3600, function () {
+            return $this->userRepository->all();
+        });
     }
 
     /**
@@ -54,7 +54,9 @@ class UserService
      */
     public function createUser(array $data): User
     {
-        return $this->userRepository->create($data);
+        $user = $this->userRepository->create($data);
+        Cache::forget('users');
+        return $user;
     }
 
     /**
@@ -69,6 +71,7 @@ class UserService
     {
         $user = $this->getUserById($id); // This will throw if not found
         $this->userRepository->update($id, $data);
+        Cache::forget('users');
         return $user->fresh();
     }
 
@@ -84,5 +87,6 @@ class UserService
         if (!$this->userRepository->delete($id)) {
             throw new \Exception('User not found');
         }
+        Cache::forget('users');
     }
 }

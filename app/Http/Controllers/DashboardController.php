@@ -45,6 +45,18 @@ class DashboardController extends Controller
                              })->count(),
         ];
 
+        // Performance Data for Chart (last 12 months)
+        $performanceData = DB::table('task_assignments')
+            ->join('tasks', 'task_assignments.task_id', '=', 'tasks.id')
+            ->where('task_assignments.assigned_to', $user->id)
+            ->where('tasks.status', 'completed')
+            ->where('tasks.updated_at', '>=', now()->subMonths(12))
+            ->select(DB::raw('DATE_FORMAT(tasks.updated_at, "%Y-%m") as month, COUNT(*) as completed'))
+            ->groupBy('month')
+            ->orderBy('month')
+            ->pluck('completed', 'month')
+            ->toArray();
+
         // Recent Tasks
         $recentTasks = Task::with(['assignments.assignedTo', 'user'])
                           ->orderBy('created_at', 'desc')
@@ -88,7 +100,8 @@ class DashboardController extends Controller
             'userRecentTasks',
             'recentNotifications',
             'priorityStats',
-            'tasksDueSoon'
+            'tasksDueSoon',
+            'performanceData'
         ));
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
+use App\Http\Resources\TaskResource;
 use App\Models\Task;
 use App\Models\TaskAssignment;
 use App\Services\TaskService;
@@ -28,24 +29,24 @@ class TaskController extends Controller
      * Display a listing of the resource.
      *
      * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function index(Request $request)
     {
         $tasks = $this->taskService->getAllTasks($request);
-        return response()->json($tasks);
+        return TaskResource::collection($tasks);
     }
 
     /**
      * Store a newly created resource in storage.
      *
      * @param StoreTaskRequest $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return TaskResource
      */
     public function store(StoreTaskRequest $request)
     {
         $task = $this->taskService->createTask($request->validated());
-        return response()->json($task, 201);
+        return new TaskResource($task);
     }
 
     /**
@@ -57,7 +58,7 @@ class TaskController extends Controller
     public function show(string $id)
     {
         $task = $this->taskService->getTaskById((int) $id);
-        return response()->json($task);
+        return new TaskResource($task);
     }
 
     /**
@@ -70,7 +71,7 @@ class TaskController extends Controller
     public function update(UpdateTaskRequest $request, string $id)
     {
         $task = $this->taskService->updateTask((int) $id, $request->validated());
-        return response()->json($task);
+        return new TaskResource($task);
     }
 
     /**

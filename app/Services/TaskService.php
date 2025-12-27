@@ -2,11 +2,14 @@
 
 namespace App\Services;
 
+use App\Events\TaskAssigned;
+use App\Events\TaskCreated;
+use App\Events\TaskDeleted;
+use App\Events\TaskUpdated;
 use App\Models\Task;
 use App\Models\TaskAssignment;
 use App\Repositories\Contracts\TaskRepositoryInterface;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class TaskService
 {
@@ -30,7 +33,10 @@ class TaskService
      */
     public function getAllTasks(Request $request): Collection
     {
-        return $this->taskRepository->all($request);
+        $cacheKey = 'tasks_' . md5(serialize($request->all()));
+        return Cache::remember($cacheKey, 3600, function () use ($request) {
+            return $this->taskRepository->all($request);
+        });
     }
 
     /**
@@ -57,7 +63,9 @@ class TaskService
      */
     public function createTask(array $data): Task
     {
-        return $this->taskRepository->create($data);
+        $task = $this->taskRepository->create($data);
+        broadcast(new TaskCreated($task))->toOthers();
+        return $task;
     }
 
     /**
@@ -72,7 +80,9 @@ class TaskService
     {
         $task = $this->getTaskById($id); // This will throw if not found
         $this->taskRepository->update($id, $data);
-        return $task->fresh();
+        $updatedTask = $task->fresh();
+        broadcast(new TaskUpdated($updatedTask))->toOthers();
+        return $updatedTask;
     }
 
     /**
@@ -87,6 +97,7 @@ class TaskService
         if (!$this->taskRepository->delete($id)) {
             throw new \Exception('Task not found');
         }
+        broadcast(new TaskDeleted($id))->toOthers();
     }
 
     /**
@@ -100,8 +111,10 @@ class TaskService
      */
     public function assignUsersToTask(int $id, array $userIds, ?int $assignedBy): array
     {
-        $this->getTaskById($id); // Ensure task exists
-        return $this->taskRepository->assignUsers($id, $userIds, $assignedBy);
+        $task = $this->getTaskById($id); // Ensure task exists
+        $assignments = $this->taskRepository->assignUsers($id, $userIds, $assignedBy);
+        broadcast(new TaskAssigned($task->fresh(['assignees'])))->toOthers();
+        return $assignments;
     }
 
     /**

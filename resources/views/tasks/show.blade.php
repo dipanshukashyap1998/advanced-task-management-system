@@ -19,6 +19,31 @@
                         <h1 class="text-3xl font-bold text-gray-900 mt-2">{{ $task->title }}</h1>
                     </div>
                     <div class="flex space-x-3">
+                        @if ($task->created_by === auth()->id() || auth()->user()->is_admin ?? false)
+                            <a href="{{ route('tasks.edit', $task->id) }}"
+                                class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                    </path>
+                                </svg>
+                                Edit
+                            </a>
+                            <form method="POST" action="{{ route('tasks.destroy', $task->id) }}"
+                                onsubmit="return confirm('Are you sure you want to delete this task?')" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                        </path>
+                                    </svg>
+                                    Delete
+                                </button>
+                            </form>
+                        @endif
                         <span
                             class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
                             @if ($task->priority === 'urgent') bg-red-100 text-red-800
@@ -60,7 +85,8 @@
                         <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
                             <div>
                                 <dt class="text-sm font-medium text-gray-500">Created By</dt>
-                                <dd class="mt-1 text-sm text-gray-900">{{ $task->creator->name }}</dd>
+                                <dd class="mt-1 text-sm text-gray-900">
+                                    {{ $task->creator ? $task->creator->name : 'Unknown User' }}</dd>
                             </div>
                             <div>
                                 <dt class="text-sm font-medium text-gray-500">Created Date</dt>
@@ -178,7 +204,8 @@
                     <h3 class="text-lg font-medium text-gray-900">Assign Users to Task</h3>
                     <button onclick="closeAssignmentModal()" class="text-gray-400 hover:text-gray-600">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12">
                             </path>
                         </svg>
                     </button>

@@ -12,6 +12,14 @@
                         <p class="mt-2 text-gray-600">Manage and track all your tasks</p>
                     </div>
                     <div class="flex space-x-3">
+                        <a href="{{ route('tasks.create') }}"
+                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Create New Task
+                        </a>
                         <a href="{{ route('dashboard') }}"
                             class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -65,6 +73,23 @@
                                         {{ ucfirst($priority) }}
                                     </option>
                                 @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Due Date Filter -->
+                        <div>
+                            <label for="due_date_filter" class="block text-sm font-medium text-gray-700">Due Date</label>
+                            <select name="due_date_filter" id="due_date_filter"
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                <option value="">All Dates</option>
+                                <option value="today" {{ request('due_date_filter') === 'today' ? 'selected' : '' }}>Today
+                                </option>
+                                <option value="this_week"
+                                    {{ request('due_date_filter') === 'this_week' ? 'selected' : '' }}>This Week</option>
+                                <option value="this_month"
+                                    {{ request('due_date_filter') === 'this_month' ? 'selected' : '' }}>This Month</option>
+                                <option value="overdue" {{ request('due_date_filter') === 'overdue' ? 'selected' : '' }}>
+                                    Overdue</option>
                             </select>
                         </div>
 
@@ -130,7 +155,8 @@
                                     <div class="flex-1 min-w-0">
                                         <div class="flex items-center space-x-3">
                                             <h3 class="text-lg font-medium text-gray-900 truncate">
-                                                <a href="{{ route('tasks.show', $task->id) }}" class="hover:text-blue-600">
+                                                <a href="{{ route('tasks.show', $task->id) }}"
+                                                    class="hover:text-blue-600">
                                                     {{ $task->title }}
                                                 </a>
                                             </h3>
@@ -155,7 +181,8 @@
                                             {{ Str::limit($task->description, 150) }}
                                         </p>
                                         <div class="mt-2 flex items-center space-x-4 text-sm text-gray-500">
-                                            <span>Created by {{ $task->creator->name }}</span>
+                                            <span>Created by
+                                                {{ $task->creator ? $task->creator->name : 'Unknown User' }}</span>
                                             @if ($task->due_date)
                                                 <span>Due: {{ $task->due_date->format('M d, Y') }}</span>
                                             @endif
@@ -166,8 +193,24 @@
                                     <div class="flex items-center space-x-2">
                                         <a href="{{ route('tasks.show', $task->id) }}"
                                             class="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                            View Details
+                                            View
                                         </a>
+                                        @if ($task->created_by === auth()->id() || auth()->user()->is_admin)
+                                            <a href="{{ route('tasks.edit', $task->id) }}"
+                                                class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                                Edit
+                                            </a>
+                                            <form method="POST" action="{{ route('tasks.destroy', $task->id) }}"
+                                                onsubmit="return confirm('Are you sure you want to delete this task?')"
+                                                class="inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"
+                                                    class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        @endif
                                     </div>
                                 </div>
                             </div>

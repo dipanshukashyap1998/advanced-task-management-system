@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Http\Request;
@@ -31,7 +32,7 @@ class UserController extends Controller
     public function index()
     {
         $users = $this->userService->getAllUsers();
-        return response()->json($users);
+        return UserResource::collection($users);
     }
 
     /**
@@ -43,19 +44,19 @@ class UserController extends Controller
     public function store(StoreUserRequest $request)
     {
         $user = $this->userService->createUser($request->validated());
-        return response()->json($user, 201);
+        return new UserResource($user);
     }
 
     /**
      * Display the specified resource.
      *
      * @param string $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return UserResource
      */
     public function show(string $id)
     {
         $user = $this->userService->getUserById((int) $id);
-        return response()->json($user);
+        return new UserResource($user);
     }
 
     /**
@@ -63,12 +64,12 @@ class UserController extends Controller
      *
      * @param UpdateUserRequest $request
      * @param string $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return UserResource
      */
     public function update(UpdateUserRequest $request, string $id)
     {
         $user = $this->userService->updateUser((int) $id, $request->validated());
-        return response()->json($user);
+        return new UserResource($user);
     }
 
     /**

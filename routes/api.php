@@ -19,8 +19,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
 
-    Route::apiResource('users', UserController::class);
-    Route::apiResource('tasks', TaskController::class);
+    Route::apiResource('users', UserController::class)->names('api.users');
+    Route::apiResource('tasks', TaskController::class)->names('api.tasks');
 
     Route::post('tasks/{id}/assign', [TaskController::class, 'assign']);
     Route::get('tasks/{id}/assignees', [TaskController::class, 'assignees']);
